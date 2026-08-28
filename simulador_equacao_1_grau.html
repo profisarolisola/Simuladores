@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratório das Equações</title>
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --ink:#1f2937; --muted:#64748b;
+  --primary:#5b5bd6; --primary2:#7c3aed; --good:#15803d; --bad:#b91c1c;
+  --yellow:#facc15; --blue:#60a5fa; --pink:#f472b6; --orange:#fb923c;
+  --line:#dbe3ef;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#eef2ff,#f8fafc);color:var(--ink)}
+button,select{font:inherit}
+.app{max-width:1200px;margin:auto;padding:20px}
+header{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white;border-radius:24px;padding:24px;box-shadow:0 12px 30px #4f46e51f}
+header h1{margin:0 0 6px;font-size:clamp(28px,5vw,44px)}
+header p{margin:0;font-size:17px;opacity:.94}
+.topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:18px 0}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.pill{background:white;border:1px solid var(--line);border-radius:999px;padding:10px 15px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 8px 25px #33415510;margin-bottom:18px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button,.selectlike{border:0;border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;transition:.18s}
+button:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.primary{background:var(--primary);color:white}.secondary{background:#e8eafc;color:#3730a3}
+.warning{background:#fff7d6;color:#854d0e}.dark{background:#334155;color:white}.good{background:#dcfce7;color:#166534}.danger{background:#fee2e2;color:#991b1b}
+select{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:white}
+.eq-title{text-align:center;color:var(--muted);font-size:14px;text-transform:uppercase;letter-spacing:.08em}
+.equation{text-align:center;font-size:clamp(32px,7vw,62px);font-weight:900;margin:8px 0 18px;color:#111827}
+.workspace{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:14px;align-items:center}
+.side{min-height:190px;border:2px dashed #cbd5e1;border-radius:18px;padding:14px;background:#f8fafc}
+.side h3{text-align:center;margin:0 0 12px}
+.blocks{display:flex;gap:8px;justify-content:center;align-content:center;flex-wrap:wrap;min-height:115px}
+.block{min-width:54px;height:54px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;box-shadow:0 4px 10px #00000012;animation:pop .25s ease}
+.xblock{background:#bfdbfe;color:#1e3a8a;border:2px solid #60a5fa}
+.numblock{background:#fde68a;color:#713f12;border:2px solid #f59e0b}
+.negblock{background:#fecaca;color:#7f1d1d;border:2px solid #ef4444}
+.empty{color:#94a3b8;text-align:center;padding-top:35px}
+.balance{position:relative;height:220px;display:flex;align-items:center;justify-content:center}
+.balance .post{position:absolute;width:18px;height:150px;background:#64748b;bottom:20px;border-radius:8px}
+.balance .base{position:absolute;width:140px;height:18px;background:#64748b;bottom:5px;border-radius:10px}
+.beam{position:absolute;width:300px;height:14px;background:#475569;border-radius:10px;top:35px;transform:rotate(0deg);transition:.5s}
+.beam:before,.beam:after{content:"";position:absolute;top:7px;width:90px;height:3px;background:#64748b}
+.beam:before{left:0;transform:translateY(38px) rotate(0deg)}.beam:after{right:0;transform:translateY(38px) rotate(0deg)}
+.tray{position:absolute;top:78px;width:125px;height:22px;background:#94a3b8;border-radius:0 0 70px 70px}
+.tray.left{left:0}.tray.right{right:0}
+.balance .status{position:absolute;top:0;background:#dcfce7;color:#166534;padding:7px 12px;border-radius:999px;font-weight:800}
+.operation-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.operation-panel button{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0}
+.operation-panel button:hover{background:#e0e7ff}
+.message{padding:14px;border-radius:14px;background:#f8fafc;border-left:5px solid var(--primary);min-height:52px}
+.message.goodmsg{background:#f0fdf4;border-left-color:#22c55e}.message.badmsg{background:#fff7ed;border-left-color:#f97316}
+.step{padding:14px;border:1px solid var(--line);border-radius:14px;margin-top:10px;background:#fafbff}
+.step strong{display:block;margin-bottom:5px}.step .math{font-size:24px;font-weight:800}
+.quiz-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.quiz-options button{text-align:left;background:#f8fafc;border:2px solid var(--line)}
+.hidden{display:none!important}
+.progress{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,var(--primary),#a855f7);width:0%;transition:.3s}
+.modal{position:fixed;inset:0;background:#0f172a99;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modalbox{max-width:650px;background:white;border-radius:24px;padding:30px;box-shadow:0 20px 60px #0003}
+.modalbox h2{margin-top:0}
+.footer-note{text-align:center;color:var(--muted);font-size:13px;padding:8px}
+@keyframes pop{from{transform:scale(.7);opacity:.2}to{transform:scale(1);opacity:1}}
+@media(max-width:850px){
+  .workspace{grid-template-columns:1fr}
+  .balance{order:2}.side{order:1}
+  .operation-panel{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:520px){
+  .app{padding:10px}.card{padding:14px}.quiz-options{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>⚖️ Laboratório das Equações</h1>
+  <p>Descubra o valor de <b>x</b> mantendo a balança equilibrada!</p>
+</header>
+
+<div class="topbar">
+  <div class="stats">
+    <div class="pill">🏆 Pontos: <span id="score">0</span></div>
+    <div class="pill">❓ Questão: <span id="qnum">1</span>/5</div>
+    <div class="pill">🎯 Nível: <span id="levelLabel">Fácil</span></div>
+  </div>
+  <div class="controls">
+    <label for="level"><b>Dificuldade:</b></label>
+    <select id="level">
+      <option value="easy">Fácil</option>
+      <option value="medium">Intermediário</option>
+      <option value="hard">Desafio</option>
+      <option value="master">Mestre</option>
+    </select>
+    <button class="secondary" id="newBtn">🔄 Nova equação</button>
+    <button class="dark" id="resetBtn">↺ Reiniciar</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="eq-title">Equação atual</div>
+  <div class="equation" id="equation">x + 3 = 8</div>
+  <div class="workspace">
+    <div class="side">
+      <h3>⬅️ Lado esquerdo</h3>
+      <div class="blocks" id="leftBlocks"></div>
+    </div>
+    <div class="balance">
+      <div class="status" id="balanceStatus">⚖️ Equilibrada</div>
+      <div class="beam" id="beam"></div>
+      <div class="tray left"></div><div class="tray right"></div>
+      <div class="post"></div><div class="base"></div>
+    </div>
+    <div class="side">
+      <h3>Lado direito ➡️</h3>
+      <div class="blocks" id="rightBlocks"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🧩 Faça uma operação nos dois lados</h2>
+  <p>Escolha uma operação. Lembre-se: <b>o que você fizer de um lado, faça também do outro.</b></p>
+  <div class="operation-panel">
+    <button data-op="+1">+ 1 nos dois lados</button>
+    <button data-op="-1">− 1 nos dois lados</button>
+    <button data-op="+2">+ 2 nos dois lados</button>
+    <button data-op="-2">− 2 nos dois lados</button>
+    <button data-op="+3">+ 3 nos dois lados</button>
+    <button data-op="-3">− 3 nos dois lados</button>
+    <button data-op="*2">× 2 nos dois lados</button>
+    <button data-op="/2">÷ 2 nos dois lados</button>
+    <button data-op="*3">× 3 nos dois lados</button>
+    <button data-op="/3">÷ 3 nos dois lados</button>
+  </div>
+  <div class="controls" style="margin-top:12px">
+    <button class="warning" id="hintBtn">💡 Preciso de uma dica</button>
+    <button class="primary" id="stepBtn">🪜 Resolver passo a passo</button>
+    <button class="secondary" id="showBtn">👀 Ver resolução</button>
+  </div>
+  <div id="message" class="message" style="margin-top:12px">Escolha uma operação para começar.</div>
+  <div id="steps"></div>
+</div>
+
+<div class="card">
+  <h2>🧠 Você resolve!</h2>
+  <p id="quizQuestion">Qual operação devemos fazer primeiro?</p>
+  <div class="quiz-options" id="quizOptions"></div>
+</div>
+
+<div class="card">
+  <h2>⚡ Desafio Relâmpago!</h2>
+  <p>Resolva as 5 equações usando as operações e acompanhe sua pontuação.</p>
+  <div class="progress"><div id="progressBar"></div></div>
+  <p id="challengeText">Você está na questão 1 de 5.</p>
+</div>
+
+<div class="card">
+  <h2>📚 Regra da igualdade</h2>
+  <div class="message">
+    <b>Uma equação é como uma balança.</b><br>
+    Os dois lados precisam ter o mesmo valor. Para manter a igualdade, toda operação feita em um lado também precisa ser feita no outro lado.
+  </div>
+</div>
+<div class="footer-note">Feito em HTML, CSS e JavaScript puro • Funciona offline</div>
+</div>
+
+<div class="modal" id="startModal">
+  <div class="modalbox">
+    <h2>⚖️ Uma equação é como uma balança!</h2>
+    <p>Os dois lados precisam ter o mesmo valor. Para descobrir o valor de <b>x</b>, você pode realizar operações, mas precisa fazer <b>a mesma operação nos dois lados</b>.</p>
+    <p>Comece escolhendo uma operação e observe o que acontece com a balança.</p>
+    <button class="primary" id="startBtn">🚀 Começar!</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="finishModal">
+  <div class="modalbox">
+    <h2>🏁 Desafio concluído!</h2>
+    <p id="finishText"></p>
+    <button class="primary" id="againBtn">🔄 Jogar novamente</button>
+  </div>
+</div>
+
+<script>
+const levels = {
+  easy: [
+    {a:1,b:3,c:8},{a:1,b:5,c:12},{a:1,b:-4,c:3},{a:1,b:-2,c:9},
+    {a:1,b:7,c:15},{a:1,b:-5,c:4}
+  ],
+  medium: [
+    {a:2,b:0,c:14},{a:3,b:0,c:21},{a:1,b:0,c:10,div:2},
+    {a:1,b:0,c:12,div:3},{a:4,b:0,c:28},{a:5,b:0,c:35}
+  ],
+  hard: [
+    {a:2,b:3,c:11},{a:3,b:2,c:17},{a:4,b:-5,c:19},{a:5,b:-3,c:22},
+    {a:2,b:4,c:18},{a:3,b:-4,c:11},{a:2,b:7,c:21},{a:4,b:3,c:31}
+  ],
+  master: [
+    {a:2,b:5,rA:1,rB:11},{a:3,b:4,rA:1,rB:12},
+    {a:4,b:-2,rA:2,rB:8},{a:5,b:3,rA:2,rB:15},
+    {a:3,b:6,rA:1,rB:18},{a:4,b:-4,rA:2,rB:14}
+  ]
+};
+
+let current, score=0, question=1, hintUsed=false, solved=false, challengeCorrect=0;
+const $=id=>document.getElementById(id);
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function makeEquation(){
+  const d=$('level').value;
+  const raw=pick(levels[d]);
+  if(d==='master'){
+    current={...raw, rightX:raw.rA, rightB:raw.rB};
+  } else {
+    current={...raw, rightX:0, rightB:raw.c};
+  }
+  current.x = current.rightB===undefined ? 0 : (current.rightB-current.b)/(current.a-current.rightX);
+  if(current.div) current.x=current.c*current.div;
+  if(!Number.isInteger(current.x)) return makeEquation();
+  current.Lx=current.a; current.Lb=current.b;
+  current.Rx=current.rightX||0; current.Rb=current.rightB!==undefined?current.rightB:current.c;
+  current.history=[];
+  hintUsed=false; solved=false;
+  $('levelLabel').textContent=$('level').selectedOptions[0].textContent;
+  render();
+  setupQuiz();
+}
+
+function termX(n){
+  if(n===0) return '';
+  if(n===1) return 'x';
+  if(n===-1) return '−x';
+  return `${n}x`;
+}
+function fmtNum(n){
+  return n<0 ? `− ${Math.abs(n)}` : `+ ${n}`;
+}
+function sideText(x,b){
+  let s=termX(x);
+  if(b!==0) s += (s ? ' ' : '') + fmtNum(b);
+  return s || '0';
+}
+function equationText(){
+  return `${sideText(current.Lx,current.Lb)} = ${sideText(current.Rx,current.Rb)}`;
+}
+function compact(n){return Number.isInteger(n)?n:n.toFixed(2)}
+function renderBlocks(el,x,b){
+  el.innerHTML='';
+  if(x===0 && b===0){el.innerHTML='<div class="empty">0</div>';return}
+  const add=(text,cls)=>{const d=document.createElement('div');d.className='block '+cls;d.textContent=text;el.appendChild(d)}
+  const countX=Math.min(Math.abs(x),8);
+  for(let i=0;i<countX;i++) add(x<0?'−x':'x',x<0?'negblock':'xblock');
+  if(Math.abs(x)>8) add(`× ${Math.abs(x)} x`,x<0?'negblock':'xblock');
+  const countB=Math.min(Math.abs(b),12);
+  for(let i=0;i<countB;i++) add(b<0?'−1':'+1',b<0?'negblock':'numblock');
+  if(Math.abs(b)>12) add(`${b<0?'−':''}${Math.abs(b)} unidades`,b<0?'negblock':'numblock');
+}
+function render(){
+  $('equation').textContent=equationText();
+  renderBlocks($('leftBlocks'),current.Lx,current.Lb);
+  renderBlocks($('rightBlocks'),current.Rx,current.Rb);
+  const lv=current.Lx*current.x+current.Lb, rv=current.Rx*current.x+current.Rb;
+  const balanced=Math.abs(lv-rv)<1e-8;
+  $('balanceStatus').textContent=balanced?'⚖️ Equilibrada':'⚠️ Verifique a igualdade';
+  $('balanceStatus').style.background=balanced?'#dcfce7':'#fee2e2';
+  $('balanceStatus').style.color=balanced?'#166534':'#991b1b';
+  $('message').textContent=solved?'🎉 Excelente! Você encontrou o valor de x.':'Escolha uma operação para começar.';
+}
+
+function applyOp(op){
+  if(solved){$('message').textContent='Esta equação já foi resolvida. Clique em "Nova equação".';return}
+  const before=equationText();
+  const [symbol,num]=[op[0],Number(op.slice(1))];
+  if(symbol==='+'){current.Lb+=num;current.Rb+=num}
+  if(symbol==='-'){current.Lb-=num;current.Rb-=num}
+  if(symbol==='*'){current.Lx*=num;current.Lb*=num;current.Rx*=num;current.Rb*=num}
+  if(symbol==='/'){
+    if(current.Lx%num!==0 || current.Lb%num!==0 || current.Rx%num!==0 || current.Rb%num!==0){
+      $('message').className='message badmsg';
+      $('message').textContent='Essa divisão não deixa todos os termos inteiros nesta etapa. Tente outra operação.';
+      return;
+    }
+    current.Lx/=num;current.Lb/=num;current.Rx/=num;current.Rb/=num;
+  }
+  current.history.push({before,op,after:equationText()});
+  render();
+  $('message').className='message goodmsg';
+  $('message').textContent=`Muito bem! Fizemos ${op} nos dois lados e mantivemos a igualdade.`;
+  checkSolved();
+}
+
+function checkSolved(){
+  if((current.Lx===1 && current.Rx===0 && current.Lb===current.Rb) ||
+     (current.Rx===1 && current.Lx===0 && current.Rb===current.Lb)){
+    solved=true;
+    score+=100+(hintUsed?0:50);
+    $('score').textContent=score;
+    $('message').className='message goodmsg';
+    $('message').textContent=`🎉 Parabéns! x = ${current.Lx===1?current.Lb:current.Rb}. Você manteve a balança equilibrada!`;
+    challengeCorrect++;
+    updateProgress();
+    setTimeout(()=>{if(question<5){question++;$('qnum').textContent=question;makeEquation()}else finish()},700);
+  }
+}
+function setupQuiz(){
+  const q=$('quizQuestion'), opts=$('quizOptions');
+  opts.innerHTML='';
+  let correct;
+  if(current.Lx!==1 && current.Lb!==0) correct=`-${current.Lb}`;
+  else if(current.Lx!==1) correct=`÷${current.Lx}`;
+  else if(current.Lb!==0) correct=`-${current.Lb}`;
+  else correct='÷2';
+  q.textContent=`Qual operação parece mais útil para começar em: ${equationText()}?`;
+  let choices=[correct];
+  const pool=['+1','−1','+2','−2','×2','÷2','+3','−3'];
+  while(choices.length<4){let x=pick(pool);if(!choices.includes(x))choices.push(x)}
+  choices.sort(()=>Math.random()-.5);
+  choices.forEach(ch=>{
+    const b=document.createElement('button');b.textContent=ch+' nos dois lados';
+    b.onclick=()=>{
+      const normalized=ch.replace('−','-').replace('÷','/');
+      const target=correct.replace('−','-').replace('÷','/');
+      if(normalized===target){
+        score+=50;$('score').textContent=score;
+        b.className='good';$('message').className='message goodmsg';
+        $('message').textContent='🌟 Muito bem! Você escolheu uma operação que ajuda a isolar o x.';
+      }else{
+        b.className='danger';$('message').className='message badmsg';
+        $('message').textContent='Quase! Pense na operação inversa: ela deve desfazer o número que está junto do x.';
+      }
+    };
+    opts.appendChild(b);
+  });
+}
+function showSteps(){
+  const s=$('steps');s.innerHTML='';
+  if(current.history.length===0){
+    s.innerHTML='<div class="step"><strong>Comece!</strong> Escolha uma operação nos dois lados para criar os passos.</div>';
+    return;
+  }
+  current.history.forEach((h,i)=>{
+    s.innerHTML+=`<div class="step"><strong>Etapa ${i+1}</strong><div class="math">${h.before}</div><div>Operação: <b>${h.op}</b> nos dois lados.</div><div class="math">${h.after}</div></div>`;
+  });
+  if(!solved){
+    s.innerHTML+=`<div class="step"><strong>Próximo passo</strong>${generateHintText()}</div>`;
+  }
+}
+function generateHintText(){
+  if(current.Lb!==0) return 'Tente eliminar o termo numérico que está junto do x usando a operação inversa.';
+  if(current.Lx!==1) return 'Agora tente desfazer a multiplicação que acompanha o x.';
+  return 'A expressão já está praticamente resolvida!';
+}
+function fullSolution(){
+  const s=$('steps');s.innerHTML='';
+  let x=current.x;
+  s.innerHTML+=`<div class="step"><strong>1. Equação</strong><div class="math">${equationText()}</div></div>`;
+  if(current.Lb!==0){
+    const op=-current.Lb;
+    s.innerHTML+=`<div class="step"><strong>2. Eliminar o termo independente</strong><div class="math">${sideText(current.Lx,current.Lb)} ${op>=0?'+ '+op:'− '+Math.abs(op)} = ${sideText(current.Rx,current.Rb)} ${op>=0?'+ '+op:'− '+Math.abs(op)}</div><p>Fazemos a mesma operação nos dois lados.</p></div>`;
+  }
+  if(current.Lx!==1){
+    s.innerHTML+=`<div class="step"><strong>3. Isolar o x</strong><div class="math">${current.Lx}x = ${current.Lx*x}</div><div class="math">x = ${x}</div><p>Dividimos os dois lados pelo coeficiente de x.</p></div>`;
+  }
+  s.innerHTML+=`<div class="step"><strong>🎯 Resposta</strong><div class="math">x = ${x}</div><p>Substituindo esse valor na equação, os dois lados ficam iguais.</p></div>`;
+}
+function finish(){
+  $('finishText').textContent=`Você acertou ${challengeCorrect} de 5 questões e terminou com ${score} pontos. ${
+    challengeCorrect===5?'Mestre das Equações 🏆':
+    challengeCorrect===4?'Investigador Matemático ⭐':
+    challengeCorrect===3?'Aprendiz das Equações 👍':
+    'Continue treinando! Você está no caminho.'
+  }`;
+  $('finishModal').classList.remove('hidden');
+}
+function updateProgress(){$('progressBar').style.width=(challengeCorrect/5*100)+'%'}
+function resetAll(){
+  score=0;question=1;challengeCorrect=0;
+  $('score').textContent=0;$('qnum').textContent=1;updateProgress();
+  makeEquation();
+}
+
+document.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click',()=>applyOp(b.dataset.op)));
+$('newBtn').onclick=()=>makeEquation();
+$('resetBtn').onclick=resetAll;
+$('level').onchange=()=>{question=1;challengeCorrect=0;$('qnum').textContent=1;updateProgress();makeEquation()};
+$('hintBtn').onclick=()=>{
+  hintUsed=true;$('message').className='message';
+  $('message').textContent=generateHintText();
+};
+$('stepBtn').onclick=showSteps;
+$('showBtn').onclick=fullSolution;
+$('startBtn').onclick=()=>{$('startModal').classList.add('hidden');makeEquation()};
+$('againBtn').onclick=()=>{$('finishModal').classList.add('hidden');resetAll()};
+
+makeEquation();
+</script>
+</body>
+</html>
